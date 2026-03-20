@@ -42,8 +42,13 @@ export default function Index() {
       </main>
 
       <footer className="border-t border-border/60 bg-white/60 mt-10">
-        <div className="max-w-3xl mx-auto px-4 py-5 text-center text-xs text-muted-foreground">
-          Антипрокрастинатор — начни прямо сейчас
+        <div className="max-w-3xl mx-auto px-4 py-6 text-center space-y-1">
+          <p className="text-xs text-muted-foreground">
+            Проект по борьбе с прокрастинацией
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            Индивидуальный проект, 10 класс · 2026
+          </p>
         </div>
       </footer>
     </div>
