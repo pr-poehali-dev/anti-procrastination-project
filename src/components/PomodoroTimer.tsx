@@ -59,8 +59,10 @@ export default function PomodoroTimer() {
   const [cycles, setCycles] = useState(0);
   const [showLongBreakHint, setShowLongBreakHint] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const phaseRef = useRef<Phase>('work');
 
   const switchPhase = useCallback((newPhase: Phase) => {
+    phaseRef.current = newPhase;
     setPhase(newPhase);
     setTimeLeft(getPhaseTime(newPhase));
     setRunning(true);
@@ -69,36 +71,37 @@ export default function PomodoroTimer() {
   }, []);
 
   useEffect(() => {
-    if (running) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            if (phase === 'work') {
-              setCycles(c => {
-                const newCycles = c + 1;
-                if (newCycles % CYCLES_BEFORE_LONG === 0) {
-                  setRunning(false);
-                  setShowLongBreakHint(true);
-                  setPhase('longbreak');
-                  setTimeLeft(LONG_BREAK_TIME);
-                } else {
-                  setTimeout(() => switchPhase('break'), 100);
-                }
-                return newCycles;
-              });
-            } else {
-              setTimeout(() => switchPhase('work'), 100);
-            }
-            return 0;
+    if (!running) return;
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          if (phaseRef.current === 'work') {
+            setCycles(c => {
+              const newCycles = c + 1;
+              if (newCycles % CYCLES_BEFORE_LONG === 0) {
+                phaseRef.current = 'longbreak';
+                setRunning(false);
+                setShowLongBreakHint(true);
+                setPhase('longbreak');
+                setTimeLeft(LONG_BREAK_TIME);
+              } else {
+                setTimeout(() => switchPhase('break'), 100);
+              }
+              return newCycles;
+            });
+          } else {
+            setTimeout(() => switchPhase('work'), 100);
           }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [running, phase, switchPhase]);
+  }, [running, switchPhase]);
 
   const handleStart = () => {
     setShowLongBreakHint(false);
@@ -107,6 +110,7 @@ export default function PomodoroTimer() {
   const handlePause = () => setRunning(false);
   const handleReset = () => {
     setRunning(false);
+    phaseRef.current = 'work';
     setPhase('work');
     setTimeLeft(WORK_TIME);
     setCycles(0);
